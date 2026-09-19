@@ -41,27 +41,6 @@
 .mode-sidebar::after {
   background: linear-gradient(180deg, #183ecc05, #1339c72b 35%, #1128bca6);
 }
-.persona-portrait {
-  position: absolute;
-  inset: 0 -70px 0 -200px;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-}
-.persona-portrait img {
-  position: absolute;
-  width: 1120px;
-  max-width: none;
-  height: 1120px;
-  left: -305px;
-  top: 15px;
-  object-fit: contain;
-  filter: grayscale(1) contrast(1.5) sepia(1) saturate(4) hue-rotate(175deg);
-  mix-blend-mode: luminosity;
-  opacity: 0.76;
-  transform: rotate(-13deg);
-  animation: portrait-arrive 1.4s var(--ease-out) both;
-}
 .sidebar-top,
 .sidebar-bottom {
   text-shadow: 0 2px 14px #1528ab;
@@ -76,17 +55,6 @@
   background: #b0f8ff;
   display: block;
   margin-bottom: 16px;
-}
-.sidebar-ghost {
-  position: absolute;
-  bottom: 8%;
-  left: -80px;
-  font: italic 900 clamp(80px, 9vw, 170px)/0.73 var(--condensed);
-  letter-spacing: -6px;
-  color: #83e8ff24;
-  transform: rotate(-12deg);
-  z-index: -1;
-  pointer-events: none;
 }
 .mode-list {
   position: relative;
@@ -206,47 +174,6 @@
   clip-path: polygon(0 0, 100% 30%, 25% 100%);
   animation: shard-drift 12s linear infinite;
   animation-delay: calc(var(--particle) * -1.3s);
-}
-.scene-wipe {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  pointer-events: none;
-  overflow: hidden;
-  animation: wipe-lifetime 950ms step-end forwards;
-}
-.wipe-band {
-  position: absolute;
-  inset: -25% -40%;
-  transform: translateX(-110%) skew(-22deg);
-}
-.wipe-cyan {
-  background: #1ce0f8;
-  animation: wipe-pass 0.8s cubic-bezier(0.76, 0, 0.24, 1) both;
-}
-.wipe-blue {
-  background: #183ce5;
-  animation: wipe-pass 0.8s 0.07s cubic-bezier(0.76, 0, 0.24, 1) both;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.wipe-blue span {
-  color: #defbff;
-  font: italic 900 clamp(70px, 12vw, 180px)/0.85 var(--condensed);
-  transform: skew(22deg) rotate(-8deg);
-  white-space: nowrap;
-  opacity: 0.75;
-}
-.wipe-line {
-  position: absolute;
-  width: 160%;
-  height: 3px;
-  left: -30%;
-  top: 50%;
-  background: white;
-  rotate: -18deg;
-  animation: line-pass 0.55s 0.2s both;
 }
 .preview-stage .spread-card,
 .drawn-stage .spread-card {
@@ -443,36 +370,6 @@ footer a:hover {
   opacity: 1;
   text-decoration: underline;
 }
-@keyframes wipe-pass {
-  0% {
-    transform: translateX(-110%) skew(-22deg);
-  }
-  42%,
-  48% {
-    transform: translateX(0) skew(-22deg);
-  }
-  100% {
-    transform: translateX(110%) skew(-22deg);
-  }
-}
-@keyframes wipe-lifetime {
-  to {
-    visibility: hidden;
-  }
-}
-@keyframes line-pass {
-  from {
-    scale: 0 1;
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  to {
-    scale: 1 1;
-    opacity: 0;
-  }
-}
 @keyframes title-cut {
   from {
     opacity: 0;
@@ -505,16 +402,6 @@ footer a:hover {
   to {
     translate: 0 0;
     opacity: 1;
-  }
-}
-@keyframes portrait-arrive {
-  from {
-    opacity: 0;
-    translate: 100px 70px;
-  }
-  to {
-    opacity: 0.76;
-    translate: 0 0;
   }
 }
 @keyframes light-drift {
@@ -670,12 +557,6 @@ footer a:hover {
   }
 }
 @media (max-width: 1100px) and (min-width: 761px) {
-  .persona-portrait img {
-    left: -345px;
-    top: 80px;
-    width: 1000px;
-    height: 1000px;
-  }
   .sidebar-top {
     margin-left: 12px;
   }
@@ -699,21 +580,6 @@ footer a:hover {
     background: linear-gradient(110deg, #1236c9, #187ee9);
     isolation: isolate;
   }
-  .persona-portrait {
-    inset: 0;
-  }
-  .persona-portrait img {
-    width: 700px;
-    height: 700px;
-    top: -88px;
-    left: calc(50% - 350px);
-    opacity: 0.3;
-    animation: none;
-    transform: rotate(-20deg);
-  }
-  .sidebar-ghost {
-    display: none;
-  }
   .scene-dial {
     left: 40%;
     width: 380px;
@@ -734,9 +600,6 @@ footer a:hover {
     top: 0;
     background: linear-gradient(#0bdafa, transparent);
     pointer-events: none;
-  }
-  .scene-wipe .wipe-blue span {
-    font-size: 70px;
   }
   .shuffle-stage .shuffle-callout {
     font-size: 17px;
@@ -779,9 +642,6 @@ footer a:hover {
   transition: none !important;
   scroll-behavior: auto !important;
 }
-.app-shell[data-motion='off'] .scene-wipe {
-  display: none;
-}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -789,9 +649,6 @@ footer a:hover {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
-  }
-  .scene-wipe {
-    display: none;
   }
 }
 @media (max-width: 520px) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cards, getMode, getPositionLabels, modes } from '../data/tarot';
+import { cards, getMode, getPositionLabels, modes, allModes, isDailyMode } from '../data/tarot';
 import { initialState, localDay, readingReducer, shuffleDeck } from './reading';
 import type { ReadingRecord } from './reading';
 import { addRecord, dailyFor, loadSaved, saveData, validRecord } from './storage';
@@ -26,13 +26,26 @@ describe('complete tarot content', () => {
         expect(card[direction].keywords.length).toBeGreaterThanOrEqual(3);
         expect(card[direction].meaning.length).toBeGreaterThan(15);
         expect(card[direction].advice.length).toBeGreaterThan(10);
-        for (const mode of modes)
+        for (const mode of allModes)
           expect(card[direction].readings[mode.id].length).toBeGreaterThan(15);
-        expect(new Set(Object.values(card[direction].readings)).size).toBe(4);
+        expect(new Set(modes.map((mode) => card[direction].readings[mode.id])).size).toBe(6);
       }
   });
   it('uses the expected card counts and branch names', () => {
-    expect(modes.map((m) => m.positions.length)).toEqual([1, 3, 3, 5]);
+    expect(modes.map((m) => m.positions.length)).toEqual([3, 4, 4, 4, 5, 2]);
+    expect(modes.map((m) => m.english)).toEqual([
+      'THE FLOW',
+      'THE GUN',
+      'THE CREPE',
+      'THE GATE',
+      'THE HALO',
+      'DAILY READING',
+    ]);
+    for (const mode of modes) {
+      expect(mode.positionEnglish).toHaveLength(mode.positions.length);
+      expect(mode.positionPrompts).toHaveLength(mode.positions.length);
+    }
+    expect(getMode('coin').positions).toEqual(['所得', '所失']);
     expect(getPositionLabels('crossroads', ' 留下 ', '出发')).toEqual([
       '当前处境',
       '留下的助力',
@@ -104,6 +117,38 @@ describe('reading state transitions', () => {
 });
 
 describe('daily and local history', () => {
+  it('keeps legacy one-card daily and all old histories without silently replacing them', () => {
+    const legacy = ['daily', 'timeline', 'relationship', 'crossroads'] as const;
+    const history = legacy.map((mode, n) =>
+      record({
+        id: 'legacy-' + n,
+        mode,
+        cards: getMode(mode).positions.map((_, cardId) => ({ cardId, orientation: 'upright' })),
+      }),
+    );
+    const raw = JSON.stringify({ version: 1, history, daily: history[0] });
+    const restored = loadSaved({ getItem: () => raw, setItem: () => {} }).data;
+    expect(restored.history).toEqual(history);
+    expect(dailyFor(restored, '2026-09-06')).toEqual(history[0]);
+    expect(isDailyMode(restored.daily!.mode)).toBe(true);
+  });
+  it('stores two-card daily independently of the old one-card mode and advances on a new date', () => {
+    const coin = record({
+      mode: 'coin',
+      cards: [
+        { cardId: 8, orientation: 'upright' },
+        { cardId: 9, orientation: 'reversed' },
+      ],
+    });
+    expect(validRecord(coin)).toBe(true);
+    expect(validRecord({ ...coin, cards: coin.cards.slice(0, 1) })).toBe(false);
+    expect(validRecord({ ...coin, mode: 'daily' })).toBe(false);
+    const saved = addRecord(empty(), coin);
+    expect(dailyFor(saved, '2026-09-06')).toEqual(coin);
+    expect(dailyFor(saved, '2026-09-07')).toBeUndefined();
+    expect(dailyFor({ ...saved, history: [] }, '2026-09-06')).toEqual(coin);
+  });
+
   it('uses local calendar dates, including the midnight boundary', () => {
     expect(localDay(new Date(2026, 8, 6, 23, 59, 59))).toBe('2026-09-06');
     expect(localDay(new Date(2026, 8, 7, 0, 0, 0))).toBe('2026-09-07');

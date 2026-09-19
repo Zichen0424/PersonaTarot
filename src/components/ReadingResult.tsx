@@ -50,6 +50,9 @@ export function ReadingResult({
                 </h3>
                 <div className="keywords">{meaning.keywords.join(' / ')}</div>
                 <p>{meaning.readings[record.mode]}</p>
+                {mode.positionPrompts?.[i] && (
+                  <p className="position-prompt">{mode.positionPrompts[i]}</p>
+                )}
                 <div className="advice">
                   <span>行动建议</span>
                   {meaning.advice}
@@ -72,13 +75,14 @@ export function ReadingResult({
           。
         </p>
         <p>
-          {record.mode === 'daily'
-            ? '把这条线索带进今天，今晚再回看：哪一个小行动让你更接近想要的状态？'
-            : record.mode === 'timeline'
-              ? '把三张牌连成一条线：从过去保留一条经验，为现在选择一个行动，并给未来留出调整的空间。趋势是反思的方向，不是确定的预言。'
-              : record.mode === 'relationship'
-                ? '分别记录自己的感受、你对对方的观察，以及希望共同调整的一件事。对方牌位提供另一种思考角度，无法得知他人的真实想法。'
-                : `分别为「${record.optionA || '选择A'}」与「${record.optionB || '选择B'}」写下一项可利用的助力、一项需要面对的挑战，再核对现实条件。牌阵不会替你决定。`}
+          {mode.summary ??
+            (record.mode === 'daily'
+              ? '把这条线索带进今天，今晚再回看：哪一个小行动让你更接近想要的状态？'
+              : record.mode === 'timeline'
+                ? '把三张牌连成一条线：从过去保留一条经验，为现在选择一个行动，并给未来留出调整的空间。趋势是反思的方向，不是确定的预言。'
+                : record.mode === 'relationship'
+                  ? '分别记录自己的感受、你对对方的观察，以及希望共同调整的一件事。对方牌位提供另一种思考角度，无法得知他人的真实想法。'
+                  : `分别为「${record.optionA || '选择A'}」与「${record.optionB || '选择B'}」写下一项可利用的助力、一项需要面对的挑战，再核对现实条件。牌阵不会替你决定。`)}
         </p>
       </div>
       <p className="result-note">

@@ -12,6 +12,12 @@ export function Atlas({
   motionEnabled: boolean;
 }) {
   const [orientation, setOrientation] = useState<Orientation>('upright');
+  const [hasCardChange, setHasCardChange] = useState(false);
+  const previousCard = useRef(selectedId);
+  useEffect(() => {
+    if (previousCard.current !== selectedId) setHasCardChange(true);
+    previousCard.current = selectedId;
+  }, [selectedId]);
   const list = useRef<HTMLDivElement>(null);
   const card = cards[selectedId];
   const meaning = card[orientation];
@@ -44,7 +50,7 @@ export function Atlas({
     return () => window.removeEventListener('resize', scrollToSelected);
   }, [selectedId, motionEnabled]);
   return (
-    <main className="atlas-page">
+    <main className={'atlas-page ' + (hasCardChange ? 'has-card-change' : '')}>
       <SceneBackdrop />
       <div className="atlas-heading">
         <a className="back-link" href="#/" aria-label="返回占卜">

@@ -1,4 +1,4 @@
-import { cards, modes, getMode } from '../data/tarot';
+import { cards, allModes, getMode, isDailyMode } from '../data/tarot';
 import type { ReadingRecord } from './reading';
 
 export const STORAGE_KEY = 'blue-hour:v1';
@@ -27,7 +27,7 @@ export function validRecord(value: unknown): value is ReadingRecord {
   if (
     typeof r.localDay !== 'string' ||
     !/^\d{4}-\d{2}-\d{2}$/.test(r.localDay) ||
-    !modes.some((m) => m.id === r.mode)
+    !allModes.some((m) => m.id === r.mode)
   )
     return false;
   if (
@@ -72,7 +72,7 @@ export function loadSaved(storage: StorageLike | null): { data: SavedData; avail
           })
           .slice(0, 30)
       : [];
-    const daily = validRecord(saved.daily) && saved.daily.mode === 'daily' ? saved.daily : null;
+    const daily = validRecord(saved.daily) && isDailyMode(saved.daily.mode) ? saved.daily : null;
     return { data: { version: 1, history, daily }, available: true };
   } catch (error) {
     return { data: emptyData(), available: error instanceof SyntaxError };
@@ -99,7 +99,7 @@ export function addRecord(data: SavedData, record: ReadingRecord): SavedData {
   return {
     version: 1,
     history: [record, ...data.history].slice(0, 30),
-    daily: record.mode === 'daily' ? record : data.daily,
+    daily: isDailyMode(record.mode) ? record : data.daily,
   };
 }
 export function dailyFor(data: SavedData, day: string) {

@@ -1,4 +1,6 @@
-export type ModeId = 'daily' | 'timeline' | 'relationship' | 'crossroads';
+export type ActiveModeId = 'flow' | 'gun' | 'crepe' | 'gate' | 'halo' | 'coin';
+export type LegacyModeId = 'daily' | 'timeline' | 'relationship' | 'crossroads';
+export type ModeId = ActiveModeId | LegacyModeId;
 export type Orientation = 'upright' | 'reversed';
 export interface Meaning {
   keywords: string[];
@@ -22,8 +24,10 @@ export interface ReadingMode {
   description: string;
   positions: string[];
   positionEnglish: string[];
+  positionPrompts?: string[];
+  summary?: string;
 }
-export const modes: ReadingMode[] = [
+const legacyModes: ReadingMode[] = [
   {
     id: 'daily',
     english: 'DAILY',
@@ -62,6 +66,123 @@ export const modes: ReadingMode[] = [
   },
 ];
 
+// The six spreads follow the supplied video. Legacy IDs remain readable in history.
+export const modes: ReadingMode[] = [
+  {
+    id: 'flow',
+    english: 'THE FLOW',
+    name: '时间之流',
+    title: '时间之流',
+    description: '从过去到未来，听见时间的回响。',
+    positions: ['过去', '现在', '未来'],
+    positionEnglish: ['Past', 'Present', 'Future'],
+    positionPrompts: [
+      '回看一段仍在影响你的经历。',
+      '辨认当下最值得投入的一件事。',
+      '把这张牌当作可以调整的趋势，而非注定的结局。',
+    ],
+    summary:
+      '从过去保留一条经验，为现在选择一个行动，再给未来留出调整的空间。三张牌呈现的是思考路径，不是确定的预言。',
+  },
+  {
+    id: 'gun',
+    english: 'THE GUN',
+    name: '铳与手',
+    title: '铳与手',
+    description: '行动、方式与回响，构成你的选择。',
+    positions: ['行动', '方式', '目标', '反应'],
+    positionEnglish: ['Trigger', 'Bullet', 'Aim', 'Recoil'],
+    positionPrompts: [
+      '是什么推动你迈出第一步？',
+      '你正用什么方式接近想要的结果？',
+      '分清真正想实现的目标和外界的期待。',
+      '留意行动之后的反馈，以及它带来的调整机会。',
+    ],
+    summary:
+      '写下一个具体目标，选择一个可以尝试的方法，再约定回看反馈的时间。把反应当作信息，让下一次行动更加清晰。',
+  },
+  {
+    id: 'crepe',
+    english: 'THE CREPE',
+    name: '饼与馅',
+    title: '饼与馅',
+    description: '穿过表象，品尝藏在其中的心绪。',
+    positions: ['表象', '内情', '感触', '余存'],
+    positionEnglish: ['Wrap', 'Filling', 'Flavor', 'Residue'],
+    positionPrompts: [
+      '先描述你看见的事实，而不急于解释。',
+      '给尚未说出的需求和担忧一点空间。',
+      '此刻最鲜明的感受是什么？',
+      '这段经历结束后，你希望留下什么？',
+    ],
+    summary:
+      '分别写下看见的事实、内在的需求和真实的感受，再选一件值得保留的收获。内情牌位帮助自我探索，不能揭示他人的隐秘想法。',
+  },
+  {
+    id: 'gate',
+    english: 'THE GATE',
+    name: '此与彼',
+    title: '此与彼',
+    description: '看见门的两侧，再决定如何跨越。',
+    positions: ['彼在', '此在', '通行', '开启'],
+    positionEnglish: ['Remote', 'Local', 'Transit', 'Access'],
+    positionPrompts: [
+      '你向往的另一种处境，最吸引你的是什么？',
+      '确认当下已经拥有的资源与现实限制。',
+      '找出连接此刻与目标的一个可行步骤。',
+      '明确开始之前需要具备的条件。',
+    ],
+    summary:
+      '对照门两侧的期待与现实，列出跨越所需的资源，并选择一个可撤回的小步骤。开启的时机仍由你结合现实条件判断。',
+  },
+  {
+    id: 'halo',
+    english: 'THE HALO',
+    name: '本真之环',
+    title: '本真之环',
+    description: '沿着感知与回应，走回内心的中心。',
+    positions: ['输出', '输入', '处理', '内核', '记忆'],
+    positionEnglish: ['Output', 'Input', 'Process', 'Kernel', 'Memory'],
+    positionPrompts: [
+      '你的言语和行动正在传达什么？',
+      '最近哪些外界信息影响了你？',
+      '你习惯如何消化感受、形成判断？',
+      '辨认一项不愿轻易放弃的价值。',
+      '哪段经验仍在塑造今天的回应？',
+    ],
+    summary:
+      '从一段近期经历出发，记录收到的信息、自己的判断与表达。再问自己：这次回应是否符合内心的价值，是否沿用了某种旧习惯？',
+  },
+  {
+    id: 'coin',
+    english: 'DAILY READING',
+    name: '日常占卜 · 正与反',
+    title: '正与反',
+    description: '一天的两面，有所得，也有所放下。',
+    positions: ['所得', '所失'],
+    positionEnglish: ['Gain', 'Cost'],
+    positionPrompts: [
+      '留意今天可以获得、珍惜或培养的事物。',
+      '留意需要投入的代价，或可以主动放下的负担。',
+    ],
+    summary:
+      '为今天选一件值得珍惜的小事，也为一项必要的付出留出空间。所得与所失不必互相抵消，今晚可以带着两条线索回顾自己。',
+  },
+];
+export const allModes = [...modes, ...legacyModes];
+export function isDailyMode(id: ModeId) {
+  return id === 'coin' || id === 'daily';
+}
+export function menuModeId(id: ModeId): ActiveModeId {
+  const aliases: Record<LegacyModeId, ActiveModeId> = {
+    daily: 'coin',
+    timeline: 'flow',
+    relationship: 'crepe',
+    crossroads: 'gate',
+  };
+  return id in aliases ? aliases[id as LegacyModeId] : (id as ActiveModeId);
+}
+
 function meaning(
   keywords: string,
   base: string,
@@ -75,7 +196,18 @@ function meaning(
     keywords: keywords.split('、'),
     meaning: base,
     advice,
-    readings: { daily, timeline, relationship, crossroads },
+    readings: {
+      daily,
+      timeline,
+      relationship,
+      crossroads,
+      flow: timeline,
+      gun: '从行动的动机走向现实的反馈。' + base,
+      crepe: '区分眼前的表象与内在的感受。' + base,
+      gate: '在此刻与向往之间寻找可行的通路。' + base,
+      halo: '观察感知、判断与表达如何围绕你的价值运转。' + base,
+      coin: '把今天的收获与付出放在一起观察。' + daily,
+    },
   };
 }
 export const cards: TarotCard[] = [
@@ -610,7 +742,7 @@ export const cards: TarotCard[] = [
 ];
 
 export function getMode(id: ModeId) {
-  return modes.find((mode) => mode.id === id)!;
+  return allModes.find((mode) => mode.id === id)!;
 }
 export function getPositionLabels(mode: ModeId, optionA = '', optionB = '') {
   return getMode(mode).positions.map((label) =>

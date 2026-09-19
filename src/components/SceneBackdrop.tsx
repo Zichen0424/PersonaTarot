@@ -25,15 +25,3 @@ export function SceneBackdrop() {
     </div>
   );
 }
-
-export function SceneWipe({ label }: { label: string }) {
-  return (
-    <div className="scene-wipe" aria-hidden="true">
-      <div className="wipe-band wipe-cyan" />
-      <div className="wipe-band wipe-blue">
-        <span>{label}</span>
-      </div>
-      <div className="wipe-line" />
-    </div>
-  );
-}

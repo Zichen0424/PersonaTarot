@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, KeyboardEvent } from 'react';
-import { cards, modes, getMode, getPositionLabels } from './data/tarot';
+import { cards, modes, getMode, getPositionLabels, isDailyMode, menuModeId } from './data/tarot';
 import type { ModeId } from './data/tarot';
 import { CardArt } from './components/CardArt';
 import { Atlas } from './components/Atlas';
 import { History } from './components/History';
 import { ReadingResult } from './components/ReadingResult';
-import { SceneBackdrop, SceneWipe } from './components/SceneBackdrop';
+import { SceneBackground } from './components/SceneBackground';
 import { initialState, readingReducer, localDay, shuffleDeck } from './lib/reading';
 import type { ReadingRecord } from './lib/reading';
 import { addRecord, browserStorage, dailyFor, loadSaved, saveData } from './lib/storage';
@@ -17,6 +17,12 @@ function readRoute() {
   return { atlas: !!match, selectedId: match?.[1] && Number(match[1]) < 22 ? Number(match[1]) : 9 };
 }
 const previewCards: Record<ModeId, number[]> = {
+  flow: [1, 18, 17],
+  gun: [7, 1, 19, 11],
+  crepe: [17, 8, 14, 12],
+  gate: [21, 9, 7, 0],
+  halo: [17, 8, 14, 12, 7],
+  coin: [8, 9],
   daily: [17],
   timeline: [1, 18, 17],
   relationship: [6, 14, 2],
@@ -28,7 +34,7 @@ export default function App() {
   const [loaded] = useState(() => loadSaved(browserStorage()));
   const [saved, setSaved] = useState(loaded.data);
   const [storageAvailable, setStorageAvailable] = useState(loaded.available);
-  const [state, dispatch] = useReducer(readingReducer, initialState('timeline'));
+  const [state, dispatch] = useReducer(readingReducer, initialState('flow'));
   const [question, setQuestion] = useState('');
   const [optionA, setOptionA] = useState('');
   const [optionB, setOptionB] = useState('');
@@ -41,6 +47,7 @@ export default function App() {
   const deckRef = useRef<HTMLDivElement>(null);
   const closeHistory = useCallback(() => setHistoryOpen(false), []);
   const mode = getMode(state.mode);
+  const menuId = menuModeId(state.mode);
   const count = mode.positions.length;
   const labels = getPositionLabels(
     state.mode,
@@ -80,9 +87,10 @@ export default function App() {
   }, []);
   const previousDay = useRef(today);
   useEffect(() => {
-    if (today !== previousDay.current && state.mode === 'daily') {
+    if (today !== previousDay.current && isDailyMode(state.mode)) {
       completionLock.current = false;
-      dispatch({ type: 'reset', mode: 'daily', record: dailyFor(saved, today) });
+      const record = dailyFor(saved, today);
+      dispatch({ type: 'reset', mode: record?.mode ?? 'coin', record });
       setQuestion('');
     }
     previousDay.current = today;
@@ -129,13 +137,10 @@ export default function App() {
 
   const chooseMode = useCallback(
     (id: ModeId) => {
-      if (id === state.mode) return;
+      if (menuModeId(id) === menuModeId(state.mode)) return;
       completionLock.current = false;
-      dispatch({
-        type: 'reset',
-        mode: id,
-        record: id === 'daily' ? dailyFor(saved, localDay()) : undefined,
-      });
+      const record = isDailyMode(id) ? dailyFor(saved, localDay()) : undefined;
+      dispatch({ type: 'reset', mode: record?.mode ?? id, record });
       setQuestion('');
       setOptionA('');
       setOptionB('');
@@ -145,9 +150,9 @@ export default function App() {
   function start(event: FormEvent) {
     event.preventDefault();
     if (state.phase !== 'setup') return;
-    const daily = state.mode === 'daily' ? dailyFor(saved, localDay()) : undefined;
+    const daily = isDailyMode(state.mode) ? dailyFor(saved, localDay()) : undefined;
     if (daily) {
-      dispatch({ type: 'reset', mode: 'daily', record: daily });
+      dispatch({ type: 'reset', mode: daily.mode, record: daily });
       return;
     }
     completionLock.current = false;
@@ -187,10 +192,6 @@ export default function App() {
       className={'app-shell ' + (route.atlas ? 'atlas-shell' : '')}
       data-motion={motionEnabled ? 'on' : 'off'}
     >
-      <SceneWipe
-        key={route.atlas ? 'atlas' : state.mode}
-        label={route.atlas ? 'ARCANA ARCHIVE' : mode.english}
-      />
       <a
         className="skip-link"
         href="#main-content"
@@ -233,13 +234,16 @@ export default function App() {
         {route.atlas ? (
           <Atlas selectedId={route.selectedId} motionEnabled={motionEnabled} />
         ) : (
-          <main className={'reading-page phase-' + state.phase}>
-            <SceneBackdrop />
+          <main className={'reading-page phase-' + state.phase + ' mode-' + menuId}>
+            <SceneBackground
+              group={isDailyMode(state.mode) ? 'daily' : 'the'}
+              motionEnabled={motionEnabled}
+            />
             <section className="reading-workspace">
               <div className="section-eyebrow">
                 <span className="live-dot" /> THE MOMENT IS YOURS{' '}
                 <span className="serial">
-                  NO. {String(modes.indexOf(mode) + 1).padStart(2, '0')} / 04
+                  NO. {String(modes.findIndex((m) => m.id === menuId) + 1).padStart(2, '0')} / 06
                 </span>
               </div>
               <div className="reading-title" key={state.mode}>
@@ -279,7 +283,7 @@ export default function App() {
                 ) : (
                   <>
                     <span>READING COMPLETE</span>
-                    <b>{state.mode === 'daily' ? '今天的专属指引' : '此刻的答案，已经展开'}</b>
+                    <b>{isDailyMode(state.mode) ? '今天的专属指引' : '此刻的答案，已经展开'}</b>
                   </>
                 )}
               </div>
@@ -453,7 +457,7 @@ export default function App() {
                   )}
                   <p>
                     静下心来，从 22 张牌中选出属于你的 {count} 张。
-                    {state.mode === 'daily' && '每天一份指引，当天结果保持不变。'}
+                    {isDailyMode(state.mode) && '每天一份指引，当天结果保持不变。'}
                   </p>
                 </form>
               )}
@@ -476,7 +480,7 @@ export default function App() {
                   >
                     查看牌阵解读 <span>↓</span>
                   </a>
-                  {state.mode !== 'daily' ? (
+                  {!isDailyMode(state.mode) ? (
                     <button className="text-button" onClick={restart}>
                       ↻ 再抽一次
                     </button>
@@ -495,58 +499,40 @@ export default function App() {
               </span>
             </section>
             <aside className="mode-sidebar" aria-label="占卜模式">
-              <div className="persona-portrait" aria-hidden="true">
-                <img
-                  src="./assets/p3r-protagonist.webp"
-                  alt=""
-                  width="1080"
-                  height="1080"
-                  fetchPriority="high"
-                />
-              </div>
-              <span className="sidebar-ghost" aria-hidden="true">
-                MEMENTO
-                <br />
-                MORI.
-              </span>
               <div className="sidebar-top">
-                CHOOSE YOUR
-                <br />
-                <b>READING.</b>
-                <span>选择你的牌阵</span>
+                TAROT SELECT <span>选择你的牌阵</span>
               </div>
               <div className="mode-list">
-                {modes.map((m, i) => (
+                {modes.map((m) => (
                   <button
                     key={m.id}
-                    className={'mode-button ' + (state.mode === m.id ? 'active' : '')}
-                    aria-pressed={state.mode === m.id}
+                    className={
+                      'mode-button ' +
+                      (m.id === 'coin' ? 'daily-mode ' : '') +
+                      (menuId === m.id ? 'active' : '')
+                    }
+                    aria-label={`${m.english} ${m.name}，${m.positions.length}张牌`}
+                    aria-pressed={menuId === m.id}
                     onClick={() => chooseMode(m.id)}
                   >
-                    <span className="mode-index">0{i + 1}</span>
-                    <span className="mode-type">{m.english}</span>
-                    <span className="mode-cn">
-                      {m.name}
-                      <small>{String(m.positions.length).padStart(2, '0')} 张牌</small>
+                    <span className="mode-type">
+                      {m.id === 'coin' ? (
+                        <>
+                          <span>DAILY</span>
+                          <span>READING</span>
+                        </>
+                      ) : (
+                        <>
+                          <small>THE</small> {m.english.replace('THE ', '')}
+                        </>
+                      )}
                     </span>
-                    {state.mode === m.id && (
-                      <span className="mode-arrow" aria-hidden="true">
-                        ↗
-                      </span>
-                    )}
+                    <span className="mode-cn">{m.id === 'coin' ? '日常占卜' : m.name}</span>
                   </button>
                 ))}
               </div>
               <div className="sidebar-bottom">
-                <span className="orbital-symbol" aria-hidden="true">
-                  ✳
-                </span>
-                <p>
-                  答案不在远方，
-                  <br />
-                  在你与自己的对话里。
-                </p>
-                <span>22 ARCANA · INFINITE POSSIBILITIES</span>
+                ALL SPREADS AVAILABLE <span>全部牌阵已开放</span>
               </div>
             </aside>
             {state.phase === 'complete' && state.record && <ReadingResult record={state.record} />}
