@@ -2,8 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { cards } from '../data/tarot';
 import type { Orientation } from '../data/tarot';
 import { CardArt } from './CardArt';
+import { SceneBackdrop } from './SceneBackdrop';
 
-export function Atlas({ selectedId }: { selectedId: number }) {
+export function Atlas({
+  selectedId,
+  motionEnabled,
+}: {
+  selectedId: number;
+  motionEnabled: boolean;
+}) {
   const [orientation, setOrientation] = useState<Orientation>('upright');
   const list = useRef<HTMLDivElement>(null);
   const card = cards[selectedId];
@@ -18,7 +25,8 @@ export function Atlas({ selectedId }: { selectedId: number }) {
       );
       if (active && list.current) {
         const container = list.current;
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const reduced =
+          !motionEnabled || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (window.innerWidth <= 900)
           container.scrollTo({
             left: active.offsetLeft - container.clientWidth / 2 + active.clientWidth / 2,
@@ -34,9 +42,10 @@ export function Atlas({ selectedId }: { selectedId: number }) {
     scrollToSelected();
     window.addEventListener('resize', scrollToSelected);
     return () => window.removeEventListener('resize', scrollToSelected);
-  }, [selectedId]);
+  }, [selectedId, motionEnabled]);
   return (
     <main className="atlas-page">
+      <SceneBackdrop />
       <div className="atlas-heading">
         <a className="back-link" href="#/" aria-label="返回占卜">
           ↙ <span>返回占卜</span>
@@ -70,7 +79,7 @@ export function Atlas({ selectedId }: { selectedId: number }) {
           <span className="atlas-roman" aria-hidden="true">
             {card.roman}
           </span>
-          <div className="atlas-name-block">
+          <div className="atlas-name-block" key={card.id}>
             <span className="section-eyebrow">THE VOICE WITHIN</span>
             <h1>{card.name}</h1>
             <p className="atlas-english">{card.english}</p>

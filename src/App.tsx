@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import type { FormEvent, KeyboardEvent } from 'react';
+import type { CSSProperties, FormEvent, KeyboardEvent } from 'react';
 import { cards, modes, getMode, getPositionLabels } from './data/tarot';
 import type { ModeId } from './data/tarot';
 import { CardArt } from './components/CardArt';
 import { Atlas } from './components/Atlas';
 import { History } from './components/History';
 import { ReadingResult } from './components/ReadingResult';
+import { SceneBackdrop, SceneWipe } from './components/SceneBackdrop';
 import { initialState, readingReducer, localDay, shuffleDeck } from './lib/reading';
 import type { ReadingRecord } from './lib/reading';
 import { addRecord, browserStorage, dailyFor, loadSaved, saveData } from './lib/storage';
@@ -32,6 +33,9 @@ export default function App() {
   const [optionA, setOptionA] = useState('');
   const [optionB, setOptionB] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [motionEnabled, setMotionEnabled] = useState(
+    () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  );
   const [today, setToday] = useState(localDay);
   const completionLock = useRef(false);
   const deckRef = useRef<HTMLDivElement>(null);
@@ -45,9 +49,12 @@ export default function App() {
   );
 
   useEffect(() => {
+    let previousPage = readRoute().atlas;
     const change = () => {
-      setRoute(readRoute());
-      window.scrollTo({ top: 0 });
+      const next = readRoute();
+      setRoute(next);
+      if (next.atlas !== previousPage) window.scrollTo({ top: 0 });
+      previousPage = next.atlas;
     };
     window.addEventListener('hashchange', change);
     return () => window.removeEventListener('hashchange', change);
@@ -84,10 +91,10 @@ export default function App() {
     if (state.phase !== 'shuffling') return;
     const timer = window.setTimeout(
       () => dispatch({ type: 'ready' }),
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 100 : 1050,
+      !motionEnabled || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 100 : 1800,
     );
     return () => clearTimeout(timer);
-  }, [state.phase]);
+  }, [state.phase, motionEnabled]);
   useEffect(() => {
     if (state.phase !== 'revealing' || state.revealed.length !== count || completionLock.current)
       return;
@@ -151,11 +158,12 @@ export default function App() {
     dispatch({ type: 'reset', mode: state.mode });
   }
   function deckKeyboard(event: KeyboardEvent<HTMLDivElement>) {
+    const columns = getComputedStyle(event.currentTarget).gridTemplateColumns.split(' ').length;
     const keys: Record<string, number> = {
       ArrowLeft: -1,
       ArrowRight: 1,
-      ArrowUp: -11,
-      ArrowDown: 11,
+      ArrowUp: -columns,
+      ArrowDown: columns,
     };
     if (!(event.key in keys)) return;
     event.preventDefault();
@@ -175,7 +183,14 @@ export default function App() {
   });
 
   return (
-    <div className={'app-shell ' + (route.atlas ? 'atlas-shell' : '')}>
+    <div
+      className={'app-shell ' + (route.atlas ? 'atlas-shell' : '')}
+      data-motion={motionEnabled ? 'on' : 'off'}
+    >
+      <SceneWipe
+        key={route.atlas ? 'atlas' : state.mode}
+        label={route.atlas ? 'ARCANA ARCHIVE' : mode.english}
+      />
       <a
         className="skip-link"
         href="#main-content"
@@ -197,6 +212,15 @@ export default function App() {
         </a>
         <span className="top-coordinate">ARCANA / INNER VOICE</span>
         <nav aria-label="主导航">
+          <button
+            className="motion-toggle"
+            aria-label={motionEnabled ? '暂停动效' : '开启动效'}
+            aria-pressed={motionEnabled}
+            onClick={() => setMotionEnabled((current) => !current)}
+          >
+            <i aria-hidden="true">{motionEnabled ? 'Ⅱ' : '▷'}</i>{' '}
+            <span>动效{motionEnabled ? '开' : '关'}</span>
+          </button>
           <button onClick={() => setHistoryOpen(true)}>
             历史记录 <span>↗</span>
           </button>
@@ -207,9 +231,10 @@ export default function App() {
       </header>
       <div id="main-content" tabIndex={-1} className="main-content">
         {route.atlas ? (
-          <Atlas selectedId={route.selectedId} />
+          <Atlas selectedId={route.selectedId} motionEnabled={motionEnabled} />
         ) : (
           <main className={'reading-page phase-' + state.phase}>
+            <SceneBackdrop />
             <section className="reading-workspace">
               <div className="section-eyebrow">
                 <span className="live-dot" /> THE MOMENT IS YOURS{' '}
@@ -217,7 +242,7 @@ export default function App() {
                   NO. {String(modes.indexOf(mode) + 1).padStart(2, '0')} / 04
                 </span>
               </div>
-              <div className="reading-title">
+              <div className="reading-title" key={state.mode}>
                 <span className="mini-cross" aria-hidden="true">
                   ✳
                 </span>
@@ -282,6 +307,7 @@ export default function App() {
                       <button
                         className={'deck-card ' + (state.selected.includes(i) ? 'picked' : '')}
                         key={i}
+                        style={{ '--deal-index': i } as CSSProperties}
                         disabled={state.selected.includes(i)}
                         aria-label={
                           '选择第' +
@@ -300,6 +326,14 @@ export default function App() {
                 </section>
               ) : state.phase === 'shuffling' ? (
                 <div className="shuffle-stage" aria-label="正在洗牌">
+                  <div className="shuffle-tunnel" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                  <span className="shuffle-callout" aria-hidden="true">
+                    倾听内心的声音
+                  </span>
                   <div className="shuffle-orbit" />
                   {[0, 1, 2].map((i) => (
                     <div className={'shuffle-card shuffle-' + i} key={i}>
@@ -327,6 +361,7 @@ export default function App() {
                       <div
                         className={'spread-card slot-' + i + (revealed ? ' revealed' : '')}
                         key={state.mode + '-' + i}
+                        style={{ '--deal-index': i } as CSSProperties}
                       >
                         {state.phase === 'setup' ? (
                           <CardArt {...card} />
@@ -354,6 +389,7 @@ export default function App() {
                               </span>
                             </span>
                             {!revealed && <span className="flip-prompt">点击揭晓 ↗</span>}
+                            <span className="reveal-glint" aria-hidden="true" />
                           </button>
                         )}
                         <div className="card-position">
@@ -428,14 +464,14 @@ export default function App() {
                     href="#result-title"
                     onClick={(e) => {
                       e.preventDefault();
-                      document
-                        .getElementById('result-title')
-                        ?.scrollIntoView({
-                          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                      document.getElementById('result-title')?.scrollIntoView({
+                        behavior:
+                          !motionEnabled ||
+                          window.matchMedia('(prefers-reduced-motion: reduce)').matches
                             ? 'instant'
                             : 'smooth',
-                          block: 'start',
-                        });
+                        block: 'start',
+                      });
                     }}
                   >
                     查看牌阵解读 <span>↓</span>
@@ -459,6 +495,20 @@ export default function App() {
               </span>
             </section>
             <aside className="mode-sidebar" aria-label="占卜模式">
+              <div className="persona-portrait" aria-hidden="true">
+                <img
+                  src="./assets/p3r-protagonist.webp"
+                  alt=""
+                  width="1080"
+                  height="1080"
+                  fetchPriority="high"
+                />
+              </div>
+              <span className="sidebar-ghost" aria-hidden="true">
+                MEMENTO
+                <br />
+                MORI.
+              </span>
               <div className="sidebar-top">
                 CHOOSE YOUR
                 <br />
@@ -504,7 +554,12 @@ export default function App() {
         )}
       </div>
       <footer>
-        <span>BLUE HOUR — A MOMENT WITH YOURSELF</span>
+        <span>
+          BLUE HOUR · 非官方同人作品{' '}
+          <a href="https://asia.sega.com/p3r/cn/" target="_blank" rel="noreferrer">
+            角色素材 © ATLUS / SEGA ↗
+          </a>
+        </span>
         <span>
           仅供娱乐与自我探索 <i aria-hidden="true">✦</i>
         </span>

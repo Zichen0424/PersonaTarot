@@ -1,0 +1,826 @@
+/* Motion direction: diagonal cuts, suspended cards, flowing blue light. */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.topbar {
+  height: 88px;
+}
+.brand-mark {
+  color: var(--red);
+}
+.topbar nav .motion-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #52657c;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.topbar nav .motion-toggle span {
+  margin: 0;
+}
+.motion-toggle i {
+  font-style: normal;
+  font-size: 15px;
+}
+.reading-page {
+  background: linear-gradient(145deg, #63e8fa 25%, #167aef 65%, #1727c5);
+}
+.reading-workspace {
+  background: linear-gradient(125deg, #fff 48%, #f1fcff 100%);
+}
+.reading-title {
+  animation: title-cut 0.65s var(--ease-out) both;
+}
+.mode-sidebar {
+  background: transparent;
+}
+.mode-sidebar::before {
+  background: linear-gradient(160deg, #4ed5f8, #1853e3 65%, #182ec9);
+}
+.mode-sidebar::after {
+  background: linear-gradient(180deg, #183ecc05, #1339c72b 35%, #1128bca6);
+}
+.persona-portrait {
+  position: absolute;
+  inset: 0 -70px 0 -200px;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.persona-portrait img {
+  position: absolute;
+  width: 1120px;
+  max-width: none;
+  height: 1120px;
+  left: -305px;
+  top: 15px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.5) sepia(1) saturate(4) hue-rotate(175deg);
+  mix-blend-mode: luminosity;
+  opacity: 0.76;
+  transform: rotate(-13deg);
+  animation: portrait-arrive 1.4s var(--ease-out) both;
+}
+.sidebar-top,
+.sidebar-bottom {
+  text-shadow: 0 2px 14px #1528ab;
+}
+.sidebar-top {
+  position: relative;
+}
+.sidebar-top::before {
+  content: '';
+  width: 26px;
+  height: 3px;
+  background: #b0f8ff;
+  display: block;
+  margin-bottom: 16px;
+}
+.sidebar-ghost {
+  position: absolute;
+  bottom: 8%;
+  left: -80px;
+  font: italic 900 clamp(80px, 9vw, 170px)/0.73 var(--condensed);
+  letter-spacing: -6px;
+  color: #83e8ff24;
+  transform: rotate(-12deg);
+  z-index: -1;
+  pointer-events: none;
+}
+.mode-list {
+  position: relative;
+}
+.mode-button {
+  transition:
+    transform 0.45s var(--ease-out),
+    color 0.25s;
+  color: #dcf3ff;
+  text-shadow: 2px 3px 0 #0d2d9470;
+}
+.mode-button:not(.active) .mode-type {
+  opacity: 0.86;
+}
+.mode-button.active {
+  text-shadow: 2px 3px #b1122855;
+}
+.mode-button.active::before {
+  animation: menu-slash 0.38s var(--ease-out) both;
+}
+.mode-button.active::after {
+  animation: menu-slash 0.48s var(--ease-out) both;
+}
+.mode-arrow {
+  animation: arrow-enter 0.5s var(--ease-out) both;
+}
+.scene-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.scene-light {
+  position: absolute;
+  height: 170%;
+  width: 150px;
+  top: -30%;
+  background: linear-gradient(90deg, transparent, #66eeff20, #9ff4ff35, transparent);
+  transform: rotate(33deg);
+}
+.scene-light-one {
+  left: 62%;
+  animation: light-drift 18s ease-in-out infinite alternate;
+}
+.scene-light-two {
+  left: 87%;
+  width: 45px;
+  animation: light-drift 13s ease-in-out infinite alternate-reverse;
+}
+.scene-water {
+  position: absolute;
+  width: 140%;
+  height: 320px;
+  top: -65px;
+  left: -20%;
+  fill: #95f4ff;
+  opacity: 0.23;
+  animation: water-drift 16s ease-in-out infinite alternate;
+}
+.scene-water path:nth-child(2) {
+  opacity: 0.45;
+}
+.scene-water path:nth-child(3) {
+  opacity: 0.3;
+}
+.scene-dial {
+  position: absolute;
+  border: 1px solid #78d8ff40;
+  width: 540px;
+  height: 540px;
+  border-radius: 50%;
+  left: 60%;
+  top: 230px;
+  animation: orbit-spin 120s linear infinite;
+}
+.scene-dial::before,
+.scene-dial::after {
+  content: '';
+  position: absolute;
+  inset: 28px;
+  border: 1px solid #78d8ff28;
+  border-radius: 50%;
+}
+.scene-dial::after {
+  inset: 70px;
+  border: 24px dashed #75d5ff0d;
+}
+.scene-dial > i {
+  position: absolute;
+  width: 2px;
+  height: 14px;
+  top: 50%;
+  left: 50%;
+  background: #9af4ff66;
+  transform: rotate(calc(var(--tick) * 30deg)) translateY(-255px);
+  transform-origin: top;
+}
+.dial-hand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 43%;
+  height: 1px;
+  transform: rotate(-25deg);
+  transform-origin: left;
+  background: #a2f3ff55;
+}
+.scene-shards i {
+  position: absolute;
+  left: calc(58% + var(--particle) * 5%);
+  top: calc(10% + var(--particle) * 9%);
+  width: calc(5px + var(--particle) * 1px);
+  height: 20px;
+  background: #8beeff;
+  opacity: 0;
+  clip-path: polygon(0 0, 100% 30%, 25% 100%);
+  animation: shard-drift 12s linear infinite;
+  animation-delay: calc(var(--particle) * -1.3s);
+}
+.scene-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  overflow: hidden;
+  animation: wipe-lifetime 950ms step-end forwards;
+}
+.wipe-band {
+  position: absolute;
+  inset: -25% -40%;
+  transform: translateX(-110%) skew(-22deg);
+}
+.wipe-cyan {
+  background: #1ce0f8;
+  animation: wipe-pass 0.8s cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+.wipe-blue {
+  background: #183ce5;
+  animation: wipe-pass 0.8s 0.07s cubic-bezier(0.76, 0, 0.24, 1) both;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wipe-blue span {
+  color: #defbff;
+  font: italic 900 clamp(70px, 12vw, 180px)/0.85 var(--condensed);
+  transform: skew(22deg) rotate(-8deg);
+  white-space: nowrap;
+  opacity: 0.75;
+}
+.wipe-line {
+  position: absolute;
+  width: 160%;
+  height: 3px;
+  left: -30%;
+  top: 50%;
+  background: white;
+  rotate: -18deg;
+  animation: line-pass 0.55s 0.2s both;
+}
+.preview-stage .spread-card,
+.drawn-stage .spread-card {
+  animation: card-arrival 0.85s calc(var(--deal-index) * 75ms) var(--ease-out) both;
+}
+.preview-stage .spread-card > .card-art {
+  animation: card-suspend 6s calc(var(--deal-index) * -0.9s) ease-in-out infinite;
+}
+.preview-stage .spread-card:hover > .card-art {
+  animation-play-state: paused;
+  filter: drop-shadow(0 0 12px #1bbfd345);
+}
+.card-position {
+  animation: label-arrive 0.65s calc(0.2s + var(--deal-index) * 75ms) var(--ease-out) both;
+}
+.deck-card {
+  animation: deck-deal 0.65s calc(var(--deal-index) * 22ms) var(--ease-out) backwards;
+  transition:
+    opacity 0.25s,
+    transform 0.35s var(--ease-out),
+    filter 0.25s;
+}
+.deck-card.picked {
+  transform: translateY(-18px) scale(0.82);
+  opacity: 0.22;
+}
+.selected-slots .filled {
+  animation: slot-lock 0.35s var(--ease-out) both;
+}
+.flip-inner {
+  transition: transform 0.85s cubic-bezier(0.2, 0.7, 0.15, 1);
+}
+.reveal-glint {
+  position: absolute;
+  pointer-events: none;
+  inset: -7%;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 33%,
+    #b4faffaa 48%,
+    #ffffffed 50%,
+    transparent 60%
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.flipped .reveal-glint {
+  animation: reveal-glint 0.9s 0.15s both;
+}
+.drawn-stage .revealed .card-position {
+  animation: label-arrive 0.55s 0.3s var(--ease-out) both;
+}
+.shuffle-stage {
+  background: radial-gradient(ellipse at center, #1458cf, #061944 72%);
+  border-radius: 2px;
+  margin-top: 25px;
+  isolation: isolate;
+  overflow: hidden;
+  color: #d5fcff;
+  box-shadow: 9px 9px 0 #14cfe344;
+  animation: shuffle-scene 0.4s var(--ease-out) both;
+}
+.shuffle-stage > span:last-child {
+  color: #b8f5ff;
+  z-index: 2;
+  font-size: 13px;
+  letter-spacing: 6px;
+}
+.shuffle-stage .shuffle-callout {
+  position: absolute;
+  top: 29px;
+  left: 0;
+  right: 0;
+  bottom: auto;
+  text-align: center;
+  color: #fff;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 3px;
+  transform: rotate(-7deg);
+  animation: title-cut 0.6s var(--ease-out) both;
+}
+.shuffle-tunnel {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  perspective: 400px;
+  overflow: hidden;
+  background: repeating-conic-gradient(
+    from 10deg at 50% 50%,
+    #1a54e522 0deg 8deg,
+    transparent 8deg 37deg
+  );
+}
+.shuffle-tunnel i {
+  position: absolute;
+  left: calc(50% - 180px);
+  top: calc(50% - 180px);
+  width: 360px;
+  height: 360px;
+  border: 1px solid #6eefff80;
+  border-radius: 50%;
+  box-shadow:
+    0 0 25px #278cfe55,
+    inset 0 0 20px #278cfe44;
+  animation: tunnel-travel 1.8s linear infinite;
+}
+.shuffle-tunnel i:nth-child(2) {
+  animation-delay: -0.6s;
+}
+.shuffle-tunnel i:nth-child(3) {
+  animation-delay: -1.2s;
+}
+.shuffle-orbit {
+  border-color: #74dfff66;
+}
+.shuffle-card {
+  filter: drop-shadow(0 0 20px #051026);
+}
+.reading-result {
+  position: relative;
+  z-index: 1;
+  animation: result-arrive 0.7s 0.2s var(--ease-out) backwards;
+}
+.atlas-page {
+  background: linear-gradient(140deg, #147eeb 0%, #2035d4 32%, #0a1030 75%);
+}
+.atlas-page .scene-backdrop {
+  z-index: -1;
+}
+.atlas-page .scene-water {
+  opacity: 0.24;
+  height: 430px;
+}
+.atlas-page .scene-dial {
+  left: -100px;
+  top: 170px;
+  width: 720px;
+  height: 720px;
+  opacity: 0.6;
+}
+.atlas-page .scene-light-one {
+  left: 25%;
+}
+.atlas-page .scene-light-two {
+  left: 48%;
+}
+.atlas-watermark {
+  color: #6893ff24;
+  animation: watermark-arrive 1s var(--ease-out) both;
+}
+.atlas-main-card {
+  animation: atlas-turn 0.8s var(--ease-out) both;
+  transform-origin: 50% 60%;
+}
+.atlas-main-card .card-art {
+  filter: drop-shadow(0 0 18px #00d9ff25);
+}
+.atlas-name-block {
+  animation: title-cut 0.65s var(--ease-out) both;
+}
+.atlas-card-option {
+  transition:
+    transform 0.55s var(--ease-out),
+    filter 0.45s,
+    opacity 0.3s;
+}
+.atlas-card-option.selected {
+  filter: drop-shadow(0 0 8px #6ff7ff) drop-shadow(0 0 22px #38cffb66);
+}
+.atlas-orbit {
+  border-style: dashed;
+}
+.atlas-paging button {
+  transition:
+    transform 0.3s var(--ease-out),
+    background 0.2s;
+}
+.atlas-paging button:hover {
+  transform: scale(1.1);
+}
+footer > span:first-child {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+footer a {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  opacity: 0.75;
+}
+footer a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+@keyframes wipe-pass {
+  0% {
+    transform: translateX(-110%) skew(-22deg);
+  }
+  42%,
+  48% {
+    transform: translateX(0) skew(-22deg);
+  }
+  100% {
+    transform: translateX(110%) skew(-22deg);
+  }
+}
+@keyframes wipe-lifetime {
+  to {
+    visibility: hidden;
+  }
+}
+@keyframes line-pass {
+  from {
+    scale: 0 1;
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  to {
+    scale: 1 1;
+    opacity: 0;
+  }
+}
+@keyframes title-cut {
+  from {
+    opacity: 0;
+    translate: 35px 12px;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    clip-path: inset(0 -30% 0 -10%);
+  }
+}
+@keyframes menu-slash {
+  from {
+    translate: 90px 0;
+    scale: 0.6 1;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    scale: 1;
+    opacity: 1;
+  }
+}
+@keyframes arrow-enter {
+  from {
+    translate: -30px 10px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+@keyframes portrait-arrive {
+  from {
+    opacity: 0;
+    translate: 100px 70px;
+  }
+  to {
+    opacity: 0.76;
+    translate: 0 0;
+  }
+}
+@keyframes light-drift {
+  to {
+    translate: -100px 25px;
+    opacity: 0.4;
+  }
+}
+@keyframes water-drift {
+  from {
+    translate: -4% -8px;
+  }
+  to {
+    translate: 4% 16px;
+  }
+}
+@keyframes shard-drift {
+  0% {
+    translate: 0 60px;
+    rotate: 0deg;
+    opacity: 0;
+  }
+  25%,
+  65% {
+    opacity: 0.3;
+  }
+  100% {
+    translate: -100px -200px;
+    rotate: 180deg;
+    opacity: 0;
+  }
+}
+@keyframes card-arrival {
+  from {
+    opacity: 0;
+    translate: 120px 90px;
+    rotate: 24deg;
+    scale: 0.68;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+@keyframes card-suspend {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -1deg;
+  }
+  50% {
+    translate: 0 -9px;
+    rotate: 1deg;
+  }
+}
+@keyframes label-arrive {
+  from {
+    opacity: 0;
+    translate: -40px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes deck-deal {
+  from {
+    opacity: 0;
+    translate: 60px 90px;
+    rotate: 18deg;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+@keyframes slot-lock {
+  from {
+    scale: 0.85;
+  }
+  60% {
+    scale: 1.08;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes reveal-glint {
+  0% {
+    opacity: 0;
+    translate: -50% 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    translate: 70% 0;
+  }
+}
+@keyframes shuffle-scene {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+@keyframes tunnel-travel {
+  from {
+    transform: translateZ(-500px) rotate(-25deg);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  to {
+    transform: translateZ(200px) rotate(45deg);
+    opacity: 0;
+  }
+}
+@keyframes atlas-turn {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateX(-90px) rotateY(-100deg) rotateZ(-17deg) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translateX(0) rotateY(0) rotateZ(-7deg) scale(1);
+  }
+}
+@keyframes watermark-arrive {
+  from {
+    opacity: 0;
+    translate: -80px 40px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes result-arrive {
+  from {
+    opacity: 0;
+    translate: 0 30px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .persona-portrait img {
+    left: -345px;
+    top: 80px;
+    width: 1000px;
+    height: 1000px;
+  }
+  .sidebar-top {
+    margin-left: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .topbar {
+    height: 78px;
+  }
+  .topbar nav {
+    gap: 12px;
+  }
+  .topbar nav .motion-toggle {
+    width: 28px;
+    height: 32px;
+    justify-content: center;
+  }
+  .motion-toggle span {
+    display: none;
+  }
+  .mode-sidebar {
+    background: linear-gradient(110deg, #1236c9, #187ee9);
+    isolation: isolate;
+  }
+  .persona-portrait {
+    inset: 0;
+  }
+  .persona-portrait img {
+    width: 700px;
+    height: 700px;
+    top: -88px;
+    left: calc(50% - 350px);
+    opacity: 0.3;
+    animation: none;
+    transform: rotate(-20deg);
+  }
+  .sidebar-ghost {
+    display: none;
+  }
+  .scene-dial {
+    left: 40%;
+    width: 380px;
+    height: 380px;
+  }
+  .mode-button {
+    text-shadow: none;
+  }
+  .reading-workspace {
+    background: linear-gradient(130deg, #fff 40%, #edfbff);
+  }
+  .reading-workspace::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 65%;
+    right: 0;
+    top: 0;
+    background: linear-gradient(#0bdafa, transparent);
+    pointer-events: none;
+  }
+  .scene-wipe .wipe-blue span {
+    font-size: 70px;
+  }
+  .shuffle-stage .shuffle-callout {
+    font-size: 17px;
+  }
+  .scene-water {
+    height: 250px;
+  }
+  footer > span:first-child {
+    gap: 6px;
+    flex-direction: column;
+  }
+  footer {
+    gap: 16px;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 380px) {
+  .topbar nav {
+    gap: 6px;
+  }
+  .topbar nav .motion-toggle {
+    width: 22px;
+  }
+  .topbar {
+    padding-inline: 3%;
+  }
+  .brand {
+    gap: 3px;
+    font-size: 21px;
+  }
+  .brand-mark {
+    font-size: 39px;
+  }
+}
+/* Pausing never hides content or prevents an interaction from completing. */
+.app-shell[data-motion='off'] *,
+.app-shell[data-motion='off'] *::before,
+.app-shell[data-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+.app-shell[data-motion='off'] .scene-wipe {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .scene-wipe {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  .brand {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 22px;
+  }
+  .topbar nav {
+    gap: 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .topbar nav > button:not(.motion-toggle) span,
+  .atlas-link span {
+    display: none;
+  }
+  .atlas-link {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 380px) {
+  .brand {
+    font-size: 20px;
+  }
+  .topbar nav {
+    gap: 7px;
+  }
+  .atlas-link {
+    padding-inline: 10px;
+  }
+}
