@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, KeyboardEvent } from 'react';
 import { cards, modes, getMode, getPositionLabels, isDailyMode, menuModeId } from './data/tarot';
 import type { ModeId } from './data/tarot';
@@ -43,6 +43,8 @@ export default function App() {
     () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [today, setToday] = useState(localDay);
+  const [flippingMode, setFlippingMode] = useState<ModeId | null>(null);
+  const footerRef = useRef<HTMLElement>(null);
   const completionLock = useRef(false);
   const deckRef = useRef<HTMLDivElement>(null);
   const closeHistory = useCallback(() => setHistoryOpen(false), []);
@@ -54,6 +56,33 @@ export default function App() {
     state.record?.optionA ?? optionA,
     state.record?.optionB ?? optionB,
   );
+
+  useLayoutEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+    const updateHeight = () => {
+      document.documentElement.style.setProperty(
+        '--app-footer-height',
+        `${Math.ceil(footer.getBoundingClientRect().height)}px`,
+      );
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(footer);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--app-footer-height');
+    };
+  }, []);
+  useEffect(() => {
+    if (!flippingMode) return;
+    if (route.atlas || state.phase !== 'setup' || !motionEnabled) {
+      setFlippingMode(null);
+      return;
+    }
+    const timer = window.setTimeout(() => setFlippingMode(null), 720);
+    return () => window.clearTimeout(timer);
+  }, [flippingMode, route.atlas, state.phase, motionEnabled]);
 
   useEffect(() => {
     let previousPage = readRoute().atlas;
@@ -138,6 +167,14 @@ export default function App() {
   const chooseMode = useCallback(
     (id: ModeId) => {
       if (menuModeId(id) === menuModeId(state.mode)) return;
+      setFlippingMode(
+        !isDailyMode(id) &&
+          !isDailyMode(state.mode) &&
+          motionEnabled &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? id
+          : null,
+      );
       completionLock.current = false;
       const record = isDailyMode(id) ? dailyFor(saved, localDay()) : undefined;
       dispatch({ type: 'reset', mode: record?.mode ?? id, record });
@@ -145,7 +182,7 @@ export default function App() {
       setOptionA('');
       setOptionB('');
     },
-    [state.mode, saved],
+    [state.mode, saved, motionEnabled],
   );
   function start(event: FormEvent) {
     event.preventDefault();
@@ -368,7 +405,20 @@ export default function App() {
                         style={{ '--deal-index': i } as CSSProperties}
                       >
                         {state.phase === 'setup' ? (
-                          <CardArt {...card} />
+                          flippingMode === state.mode ? (
+                            <div className="mode-card-flip">
+                              <div className="mode-card-flip-inner">
+                                <div className="mode-card-face">
+                                  <CardArt {...card} />
+                                </div>
+                                <div className="mode-card-back" aria-hidden="true">
+                                  <CardArt back />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <CardArt {...card} />
+                          )
                         ) : (
                           <button
                             className={'flip-button ' + (revealed ? 'flipped' : '')}
@@ -539,7 +589,7 @@ export default function App() {
           </main>
         )}
       </div>
-      <footer>
+      <footer ref={footerRef}>
         <span>
           BLUE HOUR · 非官方同人作品{' '}
           <a href="https://asia.sega.com/p3r/cn/" target="_blank" rel="noreferrer">
